@@ -14,12 +14,13 @@ def load_json(json_file):
 
     for item in items:
         data = {
-            'id': item['jobid'],
-            'submit': item['@submit'],
+            'id': item['id'],
+            'submit': item['submit'],
             'elapsed': item['elapsed'],
-            'start': item['@start'],
-            'end': item['@end'],
-            'predicted_minimum_duration_in_seconds': item['predicted_minimum_duration_in_seconds']
+            'start': item['start'],
+            'end': item['end'],
+            'predicted_minimum_duration_in_seconds': item['predicted_minimum_duration_in_seconds'],
+            'predicted_maximum_duration_in_seconds': item['predicted_maximum_duration_in_seconds']
         }
         jobs.append(data)
 
@@ -66,15 +67,17 @@ def simulate_execution_slurm(df, n_nodes):
     #Pega apenas os jobs que terminam até o ultimo dia do mes 08
     filter_date = datetime.strptime('2023-08-01T00:00:00', "%Y-%m-%dT%H:%M:%S")
     df_throughput = df[df['completion_time'] <= filter_date]
-    major_time = df_throughput.max()
+
+    major_time = df_throughput['completion_time'].max()
+
     #total_jobs = len(df)
     total_jobs = len(df_throughput)
     print(f'Number Nodes: {n_nodes}')
     print(f"Total jobs: {total_jobs}")
     print(f"First Job: {df['normalized_submit'].min()}")
-    print(f"Last Job: {major_time['completion_time']}")
+    print(f"Last Job: {major_time}")
 
-    makespan = (major_time['completion_time'] - df['normalized_submit'].min())
+    makespan = (major_time - df['normalized_submit'].min())
     td = pd.Timedelta(makespan)
     makespan_sec = td.total_seconds()
     makespan = td.total_seconds() / 60
@@ -96,17 +99,21 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    file_path = Path('2026_06_fwp.json')
+    file_path = Path('2023_06_fwp_filtered.json')
     df = load_json(file_path)
     df = pd.DataFrame(df)
+
     df['submit'] = pd.to_datetime(df['submit'])
     df['start'] = pd.to_datetime(df['start'])
     df['end'] = pd.to_datetime(df['end'])
+
     df = get_jobs(df)
+
     wsize = args.window_size + 'min'
     n_nodes = args.n_nodes
     df['normalized_submit'] = df['submit'].dt.floor(wsize)
     df = df.sort_values(by=['normalized_submit', 'predicted_minimum_duration_in_seconds'])
+    #print(df)
     simulated_df, throughput, makespan = simulate_execution_slurm(df,n_nodes)
 
     waiting_time_mean = simulated_df['waiting_time'].mean()
