@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="82d9dcfa-e8c1-43b4-b126-dc15c44fc59f" name="Changes" comment="" />
+    <list default="true" id="82d9dcfa-e8c1-43b4-b126-dc15c44fc59f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -64,7 +67,10 @@
       <workItem from="1719850524090" duration="3797000" />
       <workItem from="1719931003208" duration="6262000" />
       <workItem from="1720014518888" duration="24000" />
-      <workItem from="1720456120834" duration="4663000" />
+      <workItem from="1720456120834" duration="4700000" />
+      <workItem from="1720632392170" duration="8000" />
+      <workItem from="1720703452689" duration="7000" />
+      <workItem from="1720884936875" duration="4663000" />
     </task>
     <servers />
   </component>

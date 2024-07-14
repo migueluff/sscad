@@ -64,20 +64,19 @@ def simulate_execution_slurm(df, n_nodes):
 
         node_occupancy[min_index] = completion_time
 
-    #Pega apenas os jobs que terminam até o ultimo dia do mes 08
-    filter_date = datetime.strptime('2023-08-01T00:00:00', "%Y-%m-%dT%H:%M:%S")
-    df_throughput = df[df['completion_time'] <= filter_date]
 
-    major_time = df_throughput['completion_time'].max()
+    filter_date = datetime.strptime('2023-09-01T00:00:00', "%Y-%m-%dT%H:%M:%S")
+    df_completion_jobs_ago = df[df['completion_time'] <= filter_date]
 
-    #total_jobs = len(df)
-    total_jobs = len(df_throughput)
+    major_time = df_completion_jobs_ago['completion_time'].max()
+
+    total_jobs = len(df_completion_jobs_ago)
     print(f'Number Nodes: {n_nodes}')
     print(f"Total jobs: {total_jobs}")
-    print(f"First Job: {df['normalized_submit'].min()}")
-    print(f"Last Job: {major_time}")
+    print(f"First Job - submited time: {df['normalized_submit'].min()}")
+    print(f"Last Job - completed time: {major_time}")
 
-    makespan = (major_time - df['normalized_submit'].min())
+    makespan = (major_time - df_completion_jobs_ago['normalized_submit'].min())
     td = pd.Timedelta(makespan)
     makespan_sec = td.total_seconds()
     makespan = td.total_seconds() / 60
@@ -87,10 +86,57 @@ def simulate_execution_slurm(df, n_nodes):
 
 
 
+if __name__ == '__main__':
+    file_path = Path('2023_06_fwp_filtered.json')
+    df = load_json(file_path)
+    df = pd.DataFrame(df)
+    df['submit'] = pd.to_datetime(df['submit'])
+    df['start'] = pd.to_datetime(df['start'])
+    df['end'] = pd.to_datetime(df['end'])
 
 
+    windows = [2, 5]
+    nodes = [50, 100]
+    for w in windows:
+        #df_temp = get_jobs(df)
+        wsize = str(w) + 'min'
+        for n in nodes:
+            df_temp = df.copy()
+            df_temp['normalized_submit'] = df_temp['submit'].dt.floor(wsize)
+            df_temp = df_temp.sort_values(by=['normalized_submit'])
+            print("\t\t\t ABORDAGEM FCFS")
+            simulated_df, throughput, makespan = simulate_execution_slurm(df_temp, n)
+            waiting_time_mean = simulated_df['waiting_time'].mean()
+            print(f"Throughput: {throughput:.2f} jobs per day")
+            print(f"Makespan: {makespan:.2f} minutes")
+            print(f"Waiting Time Médio: {waiting_time_mean / 60:.2f} minutes")
+            print(f"{10 * '-'}")
+
+            df_temp = df.copy()
+            df_temp['normalized_submit'] = df_temp['submit'].dt.floor(wsize)
+            df_temp = df_temp.sort_values(by=['normalized_submit', 'predicted_minimum_duration_in_seconds'], ascending=False)
+
+            print("\t\t\t ABORDAGEM LJF")
+            simulated_df, throughput, makespan = simulate_execution_slurm(df_temp, n)
+            waiting_time_mean = simulated_df['waiting_time'].mean()
+            print(f"Throughput: {throughput:.2f} jobs per day")
+            print(f"Makespan: {makespan:.2f} minutes")
+            print(f"Waiting Time Médio: {waiting_time_mean / 60:.2f} minutes")
+            print(f"{10 * '-'}")
+
+            df_temp = df.copy()
+            df_temp['normalized_submit'] = df_temp['submit'].dt.floor(wsize)
+            df_temp = df_temp.sort_values(by=['normalized_submit', 'predicted_minimum_duration_in_seconds'])
+            print("\t\t\t ABORDAGEM SJF")
+            simulated_df, throughput, makespan = simulate_execution_slurm(df_temp, n)
+            waiting_time_mean = simulated_df['waiting_time'].mean()
+            print(f"Throughput: {throughput:.2f} jobs per day")
+            print(f"Makespan: {makespan:.2f} minutes")
+            print(f"Waiting Time Médio: {waiting_time_mean / 60:.2f} minutes")
+            print(f"{10 * '-'}")
 
 
+'''
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Benchmark AWS')
@@ -122,3 +168,4 @@ if __name__ == '__main__':
     print(f"Waiting Time Médio: {waiting_time_mean/60:.2f} minutes")
     #print("Simulated DataFrame:")
     print(simulated_df.head(20))
+'''
